@@ -402,20 +402,23 @@ server {
 
 ---
 
-## 7. SSL/TLS with Let's Encrypt (X)
+## 7. SSL/TLS with Let's Encrypt
 
-### Install Certbot:
+> 📖 **Comprehensive Guide**: For complete SSL setup including domain purchase, DNS configuration, wildcard certificates, subdomain architecture, and auto-renewal, see the dedicated guide: **[Domain, DNS & SSL Configuration →](./06-domain-ssl.md)**
+
+This section provides a quick overview. For production deployments, especially with subdomains, refer to the comprehensive guide above.
+
+### Quick Setup (Single Domain):
 
 ```bash
-# Install Certbot and Nginx plugin
+sudo apt update
+
+# Install Certbot & Nginx plugin via apt
 sudo apt install certbot python3-certbot-nginx -y
-```
 
-### Obtain SSL certificate:
-
-```bash
-# Get certificate and auto-configure Nginx
-sudo certbot --nginx -d myapp.com -d www.myapp.com
+# Verify installation
+certbot --version
+# Output: certbot 2.x.x
 ```
 
 ### Prompts:
@@ -427,11 +430,11 @@ Redirect HTTP to HTTPS: 2 (Yes, redirect)
 ```
 
 ### What Certbot does:
-1. Verifies domain ownership
+1. Verifies domain ownership (HTTP-01 challenge)
 2. Obtains certificate from Let's Encrypt
 3. Modifies your Nginx config to use SSL
 4. Sets up auto-redirect from HTTP to HTTPS
-5. Configures auto-renewal
+5. Configures auto-renewal (via systemd timer)
 
 ### Verify auto-renewal:
 
@@ -441,6 +444,26 @@ sudo certbot renew --dry-run
 
 # Check renewal timer
 sudo systemctl status certbot.timer
+```
+
+### Multiple Subdomains:
+
+```bash
+# Option 1: List all subdomains
+sudo certbot --nginx -d example.com -d api.example.com -d app.example.com
+
+# Option 2: Wildcard certificate (requires DNS-01 challenge)
+# See: ./06-domain-ssl.md for detailed wildcard setup
+```
+
+### Certificate Locations:
+
+```bash
+/etc/letsencrypt/live/myapp.com/
+├── fullchain.pem   # Use for ssl_certificate
+├── privkey.pem     # Use for ssl_certificate_key
+├── cert.pem        # Server certificate only
+└── chain.pem       # Intermediate certificates
 ```
 
 ---
@@ -464,9 +487,10 @@ add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;" always;
 add_header Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()" always;
 
-# Remove server header (additional to server_tokens off)
 more_clear_headers Server;
 ```
+
+> Note that `more_clear_headers Server;` requires the `nginx-extras` package which you can install via `sudo apt install nginx-extras -y`. Also in ngnix.conf file ensure that `server_tokens off;` is set to hide Ngnix version info in response headers. By default it will be commented anyways.
 
 ### Use in server block:
 
