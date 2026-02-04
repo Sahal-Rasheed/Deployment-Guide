@@ -661,7 +661,7 @@ server {
 ```bash
 # 3. Enable and reload
 sudo ln -s /etc/nginx/sites-available/admin.example.com /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
+sudo nginx -t && sudo nginx -s reload
 ```
 
 **No certificate renewal or expansion needed!** 🎉
@@ -805,7 +805,11 @@ resolver 1.1.1.1 1.0.0.1 valid=300s;
 resolver_timeout 5s;
 ```
 
+> **Note** This reusable snippet is `optional` as most of the config will automatically be handled by Certbot when using `--nginx` flag. However, including it ensures strong security settings. 
+
 ### Complete Nginx Config for Subdomain:
+
+Below is a sample Nginx configuration for `api.example.com` after setting up SSL. These SSL related config are included automatically by Certbot when using `--nginx` flag, but if you are manually configuring, use the following:
 
 ```bash
 sudo nano /etc/nginx/sites-available/api.example.com
@@ -875,7 +879,7 @@ sudo ln -s /etc/nginx/sites-available/api.example.com /etc/nginx/sites-enabled/
 sudo nginx -t
 
 # Reload Nginx
-sudo systemctl reload nginx
+sudo nginx -s reload
 ```
 
 ### Test SSL Configuration:
@@ -1013,8 +1017,7 @@ dig api.example.com +short
 
 ```bash
 # Install Certbot
-sudo snap install --classic certbot
-sudo ln -s /snap/bin/certbot /usr/bin/certbot
+sudo apt install certbot python3-certbot-nginx -y
 
 # Single/Multiple domains (HTTP-01)
 sudo certbot --nginx -d example.com -d api.example.com -d app.example.com
@@ -1051,7 +1054,7 @@ sudo nano /etc/nginx/sites-available/new.example.com
 # 3. Use same certificate path
 # 4. Enable site
 sudo ln -s /etc/nginx/sites-available/new.example.com /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
+sudo nginx -t && sudo nginx -s reload
 ```
 
 **Without Wildcard (Expand Certificate):**
@@ -1062,7 +1065,7 @@ sudo nginx -t && sudo systemctl reload nginx
 # 3. Expand certificate
 sudo certbot --nginx --expand -d example.com -d api.example.com -d app.example.com -d NEW.example.com
 # 4. Reload Nginx
-sudo nginx -t && sudo systemctl reload nginx
+sudo nginx -t && sudo nginx -s reload
 ```
 
 ---
